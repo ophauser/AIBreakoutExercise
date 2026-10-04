@@ -13,6 +13,7 @@
     --navy-soft: #2A3B6E;
     --red: #C8102E;
     --red-soft: #E8A0AB;
+    --green: #2E9E62;
     --ink: #1F2937;
     --muted: #6B7280;
     --muted-soft: #9CA3AF;
@@ -132,8 +133,8 @@
   }
 
   .rail-item.complete .rail-dot {
-    background: var(--red);
-    border-color: var(--red);
+    background: var(--green);
+    border-color: var(--green);
   }
 
   .rail-num {
@@ -663,9 +664,8 @@
     padding: 24px 56px 36px;
     border-top: 1px solid var(--rule);
     display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
     gap: 24px;
   }
 
@@ -691,7 +691,7 @@
 
   .deliverable-text em { color: var(--navy-soft); }
 
-  .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .actions { display: flex; gap: 12px; flex-wrap: wrap; padding-top: 20px; border-top: 1px solid var(--rule); }
 
   button {
     font-family: 'Inter', sans-serif;
@@ -746,13 +746,287 @@
   }
   @media (max-width: 720px) { .credit { padding-left: 24px; padding-right: 24px; } }
 
+  /* ================ Report-back (fills itself in) ================ */
+  .debrief-template .rb-val { color: var(--navy); font-weight: 500; }
+  .rb-edit {
+    color: var(--navy);
+    font-weight: 500;
+    border-bottom: 1px dashed var(--muted-soft);
+    padding: 0 2px;
+    outline: none;
+    cursor: text;
+  }
+  .rb-edit:hover { background: var(--paper); }
+  .rb-edit:focus { background: var(--paper); border-bottom-color: var(--navy); }
+  .rb-edit:empty::before {
+    content: attr(data-ph);
+    color: var(--muted-soft);
+    font-style: italic;
+    font-weight: 400;
+  }
+  .rb-pick {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0 6px;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.3;
+  }
+  .rb-pick-label { font-size: 12px; color: var(--muted); }
+  button.rb-chip {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0;
+    padding: 5px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--rule);
+    background: var(--field-bg);
+    color: var(--muted);
+  }
+  button.rb-chip:hover { background: var(--paper); color: var(--navy); border-color: var(--navy); }
+  button.rb-chip.active { background: var(--navy); border-color: var(--navy); color: #FFFFFF; }
+  button.rb-chip.active:hover { background: var(--navy-soft); color: #FFFFFF; }
+  button:disabled { opacity: 0.6; cursor: progress; }
+  button:disabled:hover { background: var(--field-bg); color: var(--navy); }
+  button.primary:disabled:hover { background: var(--navy); color: #FFFFFF; }
+
+  /* ================ Slide overlay ================ */
+  .slide-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: #121C3A;
+    display: flex;
+    flex-direction: column;
+  }
+  .saved-indicator { z-index: 300; }
+  @media (max-width: 720px) {
+    .slide-bar { flex-wrap: wrap; gap: 10px; padding: 10px 12px; }
+    .slide-note { order: 3; flex-basis: 100%; }
+    .slide-stage { padding: 4px 12px 16px; }
+    .actions button { flex: 1 1 100%; }
+  }
+  .slide-overlay[hidden] { display: none; }
+  .slide-bar {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 20px;
+  }
+  .slide-bar button {
+    background: transparent;
+    color: #FFFFFF;
+    border-color: rgba(255, 255, 255, 0.65);
+  }
+  .slide-bar button:hover { background: rgba(255, 255, 255, 0.14); color: #FFFFFF; }
+  .slide-bar button.primary { background: #FFFFFF; color: var(--navy); border-color: #FFFFFF; }
+  .slide-bar button.primary:hover { background: #E9ECF5; color: var(--navy); }
+  .slide-bar button:disabled:hover { background: transparent; color: #FFFFFF; }
+  .slide-bar button.primary:disabled:hover { background: #FFFFFF; color: var(--navy); }
+  .slide-note {
+    flex: 1;
+    min-width: 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: #D5DAEA;
+  }
+  .slide-stage {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 24px 24px;
+  }
+  .slide-frame {
+    position: relative;
+    flex: none;
+    background: #FFFFFF;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+  }
+  .slide-scaler {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1280px;
+    height: 720px;
+    transform-origin: top left;
+  }
+  .slide-offscreen, #print-slide-root {
+    position: fixed;
+    left: -10000px;
+    top: 0;
+    width: 1280px;
+    height: 720px;
+    pointer-events: none;
+  }
+
+  /* ================ The slide itself (1280 x 720, 16:9) ================ */
+  /* Four tinted zones follow the worksheet's own storyline: frame the work, choose the AI mode,
+     design the conditions for success, test it. */
+  .slide {
+    position: relative;
+    width: 1280px;
+    height: 720px;
+    box-sizing: border-box;
+    padding: 22px 40px 22px;
+    background: #FFFFFF;
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 62px 176px minmax(0, 1fr) 152px;
+    gap: 14px;
+    overflow: hidden;
+  }
+  .s-bar-navy { position: absolute; left: 0; top: 0; width: 100%; height: 7px; background: var(--navy); }
+  .s-bar-red  { position: absolute; left: 0; top: 0; width: 150px; height: 7px; background: var(--red); }
+
+  .s-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; min-height: 0; }
+  .s-head-left { flex: 1; min-width: 0; }
+  .s-brand { font-size: 12px; font-weight: 500; color: var(--navy); letter-spacing: 0.01em; line-height: 15px; }
+  .s-rule { width: 48px; height: 1.5px; background: var(--red); margin: 5px 0 5px; }
+  .s-title {
+    font-family: 'Lora', Georgia, serif;
+    font-weight: 500;
+    font-size: 28px;
+    line-height: 1.2;
+    color: var(--navy);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .s-head-right { flex: none; max-width: 340px; text-align: right; padding-bottom: 2px; }
+  .s-kicker { font-family: 'Lora', Georgia, serif; font-style: italic; font-size: 15px; color: var(--navy-soft); line-height: 1.3; }
+  .s-group { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.3; }
+
+  .s-row { display: grid; grid-template-rows: minmax(0, 1fr); gap: 16px; min-height: 0; }
+  .s-row.r1 { grid-template-columns: minmax(0, 1fr) 300px; }
+
+  .s-zone {
+    --div: #E6DECE;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    padding: 15px 0 10px;
+    box-sizing: border-box;
+    background: var(--paper);
+    border: 1px solid #EBE3D3;
+    border-radius: 6px;
+  }
+  .s-zone.design { --div: #D6DCEC; background: #F3F5FB; border-color: #DFE4F1; }
+  .s-zone.test   { --div: #EACDD2; background: #FCF3F4; border-color: #F1D9DD; }
+  .s-legend {
+    position: absolute;
+    top: -9px;
+    left: 16px;
+    padding: 0 8px;
+    background: #FFFFFF;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+    letter-spacing: 0.02em;
+    color: var(--red);
+  }
+
+  .s-cols { flex: 1; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr); }
+  .s-cols.c-frame  { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr); }
+  .s-cols.c-design { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .s-cols.c-test   { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr); }
+  .s-col {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    padding: 0 14px;
+    border-left: 1px solid var(--div);
+  }
+  .s-col:first-child { border-left: none; }
+
+  .s-chead { flex: none; display: flex; align-items: center; gap: 9px; margin-bottom: 7px; min-height: 30px; }
+  .s-badge {
+    flex: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .s-cols.c-design .s-chead, .s-cols.c-test .s-chead { min-height: 36px; }
+  .s-cols.c-design .s-ctitle { font-size: 13.5px; }
+  .s-badge.key { background: var(--red); }
+  .s-badge svg { display: block; }
+  .s-ctext { min-width: 0; }
+  .s-ctitle { font-family: 'Lora', Georgia, serif; font-weight: 600; font-size: 14.5px; line-height: 1.2; color: var(--navy); }
+  .s-sub { margin-top: 2px; font-size: 11.5px; font-weight: 600; line-height: 1.2; color: var(--red); }
+
+  .s-body {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--ink);
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+  .s-body.empty { color: var(--muted-soft); font-style: italic; }
+
+  /* work profile */
+  .s-prof { display: flex; flex-direction: column; gap: 9px; margin-top: 2px; }
+  .s-prof-row { display: flex; align-items: center; gap: 7px; }
+  .s-prof-ic { flex: none; display: flex; }
+  .s-prof-l { flex: 1; min-width: 0; font-size: 12px; line-height: 1.2; color: var(--ink); }
+  .s-seg { flex: none; display: flex; gap: 3px; }
+  .s-seg i { display: block; width: 17px; height: 7px; border-radius: 1px; background: #DDD6C6; }
+  .s-seg i.on { background: var(--navy); }
+  .s-prof-v { flex: none; width: 30px; text-align: right; font-size: 12px; font-weight: 600; color: var(--navy); }
+  .s-prof-v.none { color: var(--muted-soft); font-weight: 400; }
+
+  /* AI mode: three diagrams, the chosen one highlighted */
+  .s-modebox { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 0 14px; }
+  .s-tiles { flex: none; display: flex; gap: 8px; }
+  .s-tile {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 5px 2px 4px;
+    box-sizing: border-box;
+    background: #FFFFFF;
+    border: 1px solid #E3DCCB;
+    border-radius: 6px;
+  }
+  .s-tile svg { display: block; }
+  .s-tile-l { font-size: 10.5px; font-weight: 600; line-height: 13px; color: #8A93A3; }
+  .s-tile.on { background: var(--navy); border-color: var(--navy); }
+  .s-tile.on .s-tile-l { color: #FFFFFF; }
+  .s-tagline { flex: none; margin-top: 7px; font-family: 'Lora', Georgia, serif; font-style: italic; font-size: 13px; line-height: 17px; color: var(--navy-soft); }
+  .s-tagline.empty { color: var(--muted-soft); }
+  .s-because { margin-top: 4px; font-size: 12.5px; }
+
+  /* ================ Print: slide fallback ================ */
+  @media print {
+    .slide-overlay { display: none !important; }
+    #print-slide-root { display: none; }
+  }
+
   /* ================ Print ================ */
   @media print {
     body { background: white; padding: 0; }
     .shell { display: block; max-width: none; }
     .rail { display: none; }
     .page { box-shadow: none; max-width: none; }
-    .actions, .saved-indicator, .arch-card-check { display: none; }
+    .actions, .saved-indicator, .arch-card-check, .rb-pick { display: none; }
+    .rb-edit { border-bottom: none; }
     .field-input, .stretch-input, .identity-field input {
       border: 1px solid var(--rule) !important;
       box-shadow: none !important;
@@ -1073,18 +1347,26 @@
   <footer class="footer">
     <div class="deliverable">
       <div class="deliverable-label">Two-minute report-back</div>
-      <ul class="debrief-template">
-        <li>Our workflow is <span class="blank">__________</span>.</li>
-        <li>We chose the <span class="blank">______</span> mode because <span class="blank">__________</span>.</li>
-        <li>The value is <span class="blank">__________</span>.</li>
-        <li>The biggest design or governance issue is <span class="blank">__________</span>.</li>
-        <li>Our 90-day experiment is <span class="blank">__________</span>.</li>
+      <ul class="debrief-template" id="debrief">
+        <li>Our workflow is <span id="rb-workflow"></span>.</li>
+        <li>We chose the <span id="rb-mode"></span> mode because <span class="rb-edit" id="rb-because" contenteditable="true" role="textbox" aria-label="Why you chose this mode" data-ph="type your reason"></span>.</li>
+        <li>The value is <span id="rb-value"></span>.</li>
+        <li>The biggest design or governance issue is <span id="rb-issue"></span>.
+          <div class="rb-pick" role="radiogroup" aria-label="Which of questions 6 to 9 is the biggest issue?">
+            <span class="rb-pick-label">Pick from questions 6 to 9:</span>
+            <button type="button" class="rb-chip" role="radio" aria-checked="false" data-pick="q5">Governing the workflow</button>
+            <button type="button" class="rb-chip" role="radio" aria-checked="false" data-pick="q6">Helping it learn</button>
+            <button type="button" class="rb-chip" role="radio" aria-checked="false" data-pick="q7">Owning the outcome</button>
+            <button type="button" class="rb-chip" role="radio" aria-checked="false" data-pick="q8">The human role</button>
+          </div>
+        </li>
+        <li>Our 90-day experiment is <span id="rb-exp"></span>.</li>
       </ul>
     </div>
     <div class="actions">
       <button id="btn-reset" type="button">Reset worksheet</button>
-      <button id="btn-print" type="button">Print / Save as PDF</button>
-      <button id="btn-download" class="primary" type="button">Download answers</button>
+      <button id="btn-slide" class="primary" type="button">Turn into presentation slide</button>
+      <button id="btn-pdf" type="button">Save / download as PDF</button>
     </div>
   </footer>
 
@@ -1096,6 +1378,18 @@
 
 <div class="saved-indicator" id="saved">Saved</div>
 
+<div class="slide-overlay" id="slide-overlay" role="dialog" aria-modal="true" aria-label="Presentation slide" hidden>
+  <div class="slide-bar">
+    <button type="button" id="slide-back">Back to worksheet</button>
+    <div class="slide-note" id="slide-note" aria-live="polite"></div>
+    <button type="button" id="slide-pdf" class="primary">Save / download as PDF</button>
+  </div>
+  <div class="slide-stage" id="slide-stage">
+    <div class="slide-frame" id="slide-frame"><div class="slide-scaler" id="slide-scaler"></div></div>
+  </div>
+</div>
+<div id="print-slide-root" aria-hidden="true"></div>
+
 <script>
   // =================================================================
   //  HOW TO ADAPT THIS WORKSHEET
@@ -1106,8 +1400,12 @@
   //     mode cards and the report-back box: edit the HTML above.
   //  3. If you change the structure, change STORAGE_KEY so that answers
   //     saved by an earlier version do not load into the new one.
-  //  4. If you add or remove a field, keep the Download answers code at the
-  //     bottom in step with it.
+  //  4. If you add or remove a field, keep buildSlide() and renderReport()
+  //     (near the bottom of the script) in step with it. They build the
+  //     one-page slide and the auto-filled report-back from the same answers.
+  //  5. The slide is a fixed 1280 x 720 layout. Its look is in the CSS
+  //     under "The slide itself". Long answers shrink, then get cut with an
+  //     ellipsis, so the slide always stays on one page.
   // =================================================================
   // =================================================================
   //  Branching content — five questions per architecture (Q4 + Q5-Q8).
@@ -1446,7 +1744,7 @@
     }
   }
 
-  function updateRail() {
+  function updateRailOnly() {
     document.querySelectorAll('.rail-item').forEach(item => {
       const target = item.dataset.target;
       const filled = isFilled(target);
@@ -1557,17 +1855,507 @@
   setupScrollSpy();
 
   // =================================================================
+  //  Report-back, slide and PDF
+  // =================================================================
+  const MODE_NAMES    = { horizontal: 'Horizontal', vertical: 'Vertical', agentic: 'Agentic' };
+  const MODE_TAGLINES = { horizontal: 'AI added to the worker', vertical: 'AI wrapped around expert work', agentic: 'AI embedded in the workflow' };
+  const PROFILE_ROWS  = [
+    { key: 'profile-volume',    label: 'Volume / speed',            short: 'volume/speed' },
+    { key: 'profile-risk',      label: 'Risk / reversibility',      short: 'risk/reversibility' },
+    { key: 'profile-structure', label: 'Structure / codifiability', short: 'structure/codifiability' }
+  ];
+  const LEVELS = {
+    low:  { n: 1, label: 'Low',  word: 'low' },
+    med:  { n: 2, label: 'Med',  word: 'medium' },
+    high: { n: 3, label: 'High', word: 'high' }
+  };
+  const SLIDE_W = 1280, SLIDE_H = 720;
+  const LIB_URLS = {
+    html2canvas: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+    jspdf:       'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+  };
+
+  // ---------- Text helpers ----------
+  function clean(s) { return (s || '').replace(/\s+/g, ' ').trim(); }
+  function asClause(s) { return clean(s).replace(/[\s.!?;:,]+$/, ''); }
+  function lcFirst(s) { return /^[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s; }
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // The reason for the chosen mode starts from the work-profile ratings.
+  // It is only a starting point: anything typed in the report-back overrides it.
+  function suggestedBecause() {
+    const u = state.universal;
+    const parts = [];
+    PROFILE_ROWS.forEach(r => { if (LEVELS[u[r.key]]) parts.push(r.short + ' ' + LEVELS[u[r.key]].word); });
+    if (!parts.length) return '';
+    const joined = parts.length > 1
+      ? parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1]
+      : parts[0];
+    return 'we rated ' + joined;
+  }
+  function effectiveBecause() {
+    return clean(state.universal['rb-because']) || suggestedBecause();
+  }
+
+  // ---------- Report-back on the page ----------
+  const rb = id => document.getElementById(id);
+
+  // The biggest issue is one of the four leadership questions (6 to 9). The group picks which;
+  // the sentence and the slide then use that answer.
+  const ISSUE_OPTIONS = [
+    { key: 'q5', name: 'Governing the workflow' },
+    { key: 'q6', name: 'Helping it learn' },
+    { key: 'q7', name: 'Owning the outcome' },
+    { key: 'q8', name: 'The human role' }
+  ];
+  function currentIssue() {
+    const opt = ISSUE_OPTIONS.find(o => o.key === state.universal['rb-issue-pick']);
+    if (!opt) return null;
+    const answer = state.architecture ? (state.branching[state.architecture][opt.key] || '').trim() : '';
+    return { name: opt.name, answer: answer };
+  }
+
+  function setValue(el, text) {
+    if (text) { el.textContent = text; el.className = 'rb-val'; }
+    else { el.textContent = '__________'; el.className = 'blank'; }
+  }
+  function setEditable(el, text) {
+    if (document.activeElement === el) return;   // never overwrite while the person is typing
+    if (el.textContent !== text) el.textContent = text;
+  }
+  function renderReport() {
+    const u = state.universal;
+    setValue(rb('rb-workflow'), lcFirst(asClause(u['application-name'])));
+    setValue(rb('rb-mode'), state.architecture || '');
+    setValue(rb('rb-value'), lcFirst(asClause(u.f2)));
+    setValue(rb('rb-exp'), lcFirst(asClause(u.fexp)));
+    setEditable(rb('rb-because'), effectiveBecause());
+    const iss = currentIssue();
+    setValue(rb('rb-issue'), iss ? iss.name.toLowerCase() + (iss.answer ? ': ' + lcFirst(asClause(iss.answer)) : '') : '');
+    document.querySelectorAll('.rb-chip').forEach(btn => {
+      const on = btn.dataset.pick === u['rb-issue-pick'];
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
+  }
+  // Every state change already calls updateRail(), so the report-back follows along.
+  function updateRail() { updateRailOnly(); renderReport(); }
+
+  document.querySelectorAll('.rb-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cur = state.universal['rb-issue-pick'];
+      state.universal['rb-issue-pick'] = (cur === btn.dataset.pick) ? '' : btn.dataset.pick;
+      persist();
+      renderReport();
+    });
+  });
+
+  [['rb-because', 'rb-because']].forEach(([id, key]) => {
+    const el = rb(id);
+    el.addEventListener('input', () => {
+      state.universal[key] = clean(el.textContent);
+      persistDebounced();
+    });
+    el.addEventListener('blur', renderReport);
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } });
+    el.addEventListener('paste', e => {
+      e.preventDefault();
+      const text = ((e.clipboardData || window.clipboardData).getData('text') || '').replace(/\s+/g, ' ');
+      document.execCommand('insertText', false, text);
+    });
+  });
+
+  // ---------- Icons (drawn inline so they also render in the PDF) ----------
+  const ICONS = {
+    setting:   '<circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/>',
+    driver:    '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="CUR"/>',
+    profile:   '<path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/>',
+    balance:   '<path d="M12 4v16M7 20h10M5 7h14"/><path d="M5 7l-2.6 6a2.6 2.6 0 0 0 5.2 0z"/><path d="M19 7l-2.6 6a2.6 2.6 0 0 0 5.2 0z"/>',
+    toolbox:   '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M9 8V6.5A1.5 1.5 0 0 1 10.5 5h3A1.5 1.5 0 0 1 15 6.5V8M3 13h18"/>',
+    branch:    '<circle cx="6" cy="5" r="2"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="8" r="2"/><path d="M6 7v10M18 10c0 5-5 6-10 8"/>',
+    question:  '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 1 1 3.6 2.4c-.8.4-1.1 1-1.1 1.8M12 17h.01"/>',
+    workflow:  '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><path d="M6.5 10v3a3 3 0 0 0 3 3H14"/>',
+    loop:      '<path d="M20 11a8 8 0 0 0-14.5-3.5L4 9"/><path d="M4 4v5h5"/><path d="M4 13a8 8 0 0 0 14.5 3.5L20 15"/><path d="M20 20v-5h-5"/>',
+    shield:    '<path d="M12 3l7 3v5.5c0 4.7-3 8-7 9.5-4-1.5-7-4.8-7-9.5V6z"/><path d="M9 12l2.2 2.2L15.5 10"/>',
+    person:    '<circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-4 3.2-6.5 7-6.5s7 2.5 7 6.5"/>',
+    flask:     '<path d="M9 3h6M10 3v6.2L4.8 18a2 2 0 0 0 1.7 3h11a2 2 0 0 0 1.7-3L14 9.2V3M7.5 15h9"/>',
+    trend:     '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+    alert:     '<path d="M12 3.5l9.5 16.5h-19z"/><path d="M12 10v4.5M12 17.5h.01"/>',
+    bolt:      '<path d="M13 2L5 13.5h6L10 22l8-11.5h-6z"/>',
+    undo:      '<path d="M4 12a8 8 0 1 0 2.6-5.9L4 8.5"/><path d="M4 4v4.5h4.5"/>',
+    list:      '<path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>'
+  };
+  function icon(name, color, size, sw) {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color +
+      '" stroke-width="' + (sw || 1.9) + '" stroke-linecap="round" stroke-linejoin="round">' + ICONS[name].replace(/CUR/g, color) + '</svg>';
+  }
+
+  // The three modes as small diagrams: AI added to the worker, wrapped around the expert, embedded in the workflow.
+  function modeGlyph(id, on) {
+    const ink = on ? '#FFFFFF' : '#8A93A3';
+    const ai = on ? '#E8A0AB' : '#C3C9D4';
+    const inner = on ? '#1A2954' : '#FFFFFF';
+    const head = '<svg xmlns="http://www.w3.org/2000/svg" width="62" height="36" viewBox="0 0 96 56" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.6">';
+    const g = {
+      horizontal:
+        '<g stroke="' + ink + '"><circle cx="28" cy="17" r="7.5"/><path d="M13 47c0-9.5 6.5-15 15-15s15 5.5 15 15"/></g>' +
+        '<path d="M47 35h10" stroke="' + ai + '" stroke-dasharray="0.1 4.4"/>' +
+        '<rect x="59" y="22" width="26" height="26" rx="6" fill="' + ai + '" stroke="' + ai + '"/>' +
+        '<path d="M65 31h14M65 38h9" stroke="' + inner + '" stroke-width="2.2"/>',
+      vertical:
+        '<rect x="14" y="4" width="68" height="48" rx="13" stroke="' + ai + '" stroke-width="3.6"/>' +
+        '<g stroke="' + ink + '"><circle cx="48" cy="22" r="7"/><path d="M33 45c0-8 6-12.5 15-12.5s15 4.5 15 12.5"/></g>',
+      agentic:
+        '<g stroke="' + ink + '"><rect x="3" y="20" width="24" height="18" rx="4"/><rect x="69" y="20" width="24" height="18" rx="4"/>' +
+        '<path d="M28 29h6m-2.6-3 2.6 3-2.6 3M61 29h6m-2.6-3 2.6 3-2.6 3"/></g>' +
+        '<rect x="36" y="20" width="24" height="18" rx="4" fill="' + ai + '" stroke="' + ai + '"/>' +
+        '<path d="M42 27h12M42 32h8" stroke="' + inner + '" stroke-width="2.2"/>'
+    };
+    return head + g[id] + '</svg>';
+  }
+
+  // ---------- Build the slide ----------
+  // Text on the slide is sized per zone ("group"): the largest size at which every column in the
+  // zone fits, so neighbouring columns match. [largest size, smallest size] in pixels.
+  const GROUP_SIZES = { r1: [15.5, 11.5], r2: [16.5, 11.5], r3: [15.5, 11.5], because: [12.5, 10.5] };
+
+  function badge(name, key) {
+    return '<span class="s-badge' + (key ? ' key' : '') + '">' + icon(name, '#FFFFFF', 18, 1.9) + '</span>';
+  }
+  function col(iconName, key, title, sub, text, group, emptyText) {
+    const t = (text || '').trim();
+    return '<div class="s-col"><div class="s-chead">' + badge(iconName, key) +
+      '<div class="s-ctext"><div class="s-ctitle">' + esc(title) + '</div>' + (sub ? '<div class="s-sub">' + esc(sub) + '</div>' : '') + '</div></div>' +
+      (t
+        ? '<div class="s-body s-fit" data-group="' + group + '" data-name="' + esc(sub || title) + '">' + esc(t) + '</div>'
+        : '<div class="s-body empty">' + esc(emptyText || 'Not yet answered') + '</div>') +
+      '</div>';
+  }
+  function zone(cls, legend, body) {
+    return '<div class="s-zone ' + cls + '"><div class="s-legend">' + esc(legend) + '</div>' + body + '</div>';
+  }
+
+  function buildSlide() {
+    const u = state.universal;
+    const arch = state.architecture;
+    const c = arch ? BRANCH_CONTENT[arch] : null;
+    const b = arch ? state.branching[arch] : {};
+
+    const group = clean(u['group-name']);
+    const title = clean(u['application-name']) || 'Generative AI in your organisation';
+
+    // work profile
+    const profileIcons = ['bolt', 'undo', 'list'];
+    const profile = PROFILE_ROWS.map((r, i) => {
+      const lv = LEVELS[u[r.key]];
+      let segs = '';
+      for (let n = 1; n <= 3; n++) segs += '<i' + (lv && n <= lv.n ? ' class="on"' : '') + '></i>';
+      return '<div class="s-prof-row"><span class="s-prof-ic">' + icon(profileIcons[i], '#2A3B6E', 15, 2) + '</span>' +
+        '<span class="s-prof-l">' + esc(r.label) + '</span><span class="s-seg">' + segs + '</span>' +
+        '<span class="s-prof-v' + (lv ? '' : ' none') + '">' + (lv ? lv.label : '\u2013') + '</span></div>';
+    }).join('');
+    const profileCol = '<div class="s-col"><div class="s-chead">' + badge('profile') +
+      '<div class="s-ctext"><div class="s-ctitle">The work profile</div></div></div><div class="s-prof">' + profile + '</div></div>';
+
+    const frame = zone('frame', 'Frame the work',
+      '<div class="s-cols c-frame">' +
+        col('setting', false, 'The setting', '', u.f1, 'r1') +
+        col('driver', false, 'The driver', '', u.f2, 'r1') +
+        profileCol +
+      '</div>');
+
+    // AI mode
+    const because = asClause(effectiveBecause());
+    const tiles = ['horizontal', 'vertical', 'agentic'].map(m =>
+      '<div class="s-tile' + (m === arch ? ' on' : '') + '">' + modeGlyph(m, m === arch) + '<span class="s-tile-l">' + MODE_NAMES[m] + '</span></div>'
+    ).join('');
+    const modeZone = zone('mode', 'Choose the AI mode',
+      '<div class="s-modebox"><div class="s-tiles">' + tiles + '</div>' +
+      (arch
+        ? '<div class="s-tagline">' + MODE_TAGLINES[arch] + '</div>' +
+          (because ? '<div class="s-body s-fit s-because" data-group="because" data-name="The AI mode">Because ' + esc(lcFirst(because)) + '.</div>' : '')
+        : '<div class="s-tagline empty">Not yet chosen</div>') +
+      '</div>');
+
+    // the five mode-specific answers
+    const q4Icon = { horizontal: 'balance', vertical: 'toolbox', agentic: 'branch' }[arch] || 'question';
+    const defs = [
+      ['q4', q4Icon, true,  c ? c.q4.title : 'The distinctive question'],
+      ['q5', 'workflow', false, 'Governing the workflow'],
+      ['q6', 'loop',     false, 'Helping it learn'],
+      ['q7', 'shield',   false, 'Owning the outcome'],
+      ['q8', 'person',   false, 'The human role']
+    ];
+    const design = zone('design', 'Design the conditions for success',
+      '<div class="s-cols c-design">' +
+      defs.map(d => col(d[1], d[2], d[3], '', arch ? (b[d[0]] || '') : '', 'r2')).join('') +
+      '</div>');
+
+    // test it
+    const iss = currentIssue();
+    const test = zone('test', 'Test it, then scale it',
+      '<div class="s-cols c-test">' +
+        col('flask', true, 'The first experiment', '', u.fexp, 'r3') +
+        col('trend', false, 'Six months out', '', u.fstretch, 'r3') +
+        col('alert', false, 'The biggest design or governance issue', iss ? iss.name : '', iss ? iss.answer : '', 'r3', iss ? 'Not yet answered' : 'Not yet chosen') +
+      '</div>');
+
+    return htmlToNode(
+      '<div class="slide">' +
+        '<div class="s-bar-navy"></div><div class="s-bar-red"></div>' +
+        '<div class="s-head">' +
+          '<div class="s-head-left"><div class="s-brand">London Business School</div><div class="s-rule"></div>' +
+          '<div class="s-title">' + esc(title) + '</div></div>' +
+          '<div class="s-head-right"><div class="s-kicker">Generative AI in your organisation</div>' +
+          '<div class="s-group">Breakout exercise' + (group ? ' \u00b7 ' + esc(group) : '') + '</div></div>' +
+        '</div>' +
+        '<div class="s-row r1">' + frame + modeZone + '</div>' +
+        '<div class="s-row r2">' + design + '</div>' +
+        '<div class="s-row r3">' + test + '</div>' +
+      '</div>'
+    );
+  }
+  function htmlToNode(html) { const t = document.createElement('template'); t.innerHTML = html; return t.content.firstElementChild; }
+
+  // ---------- Fit text to the slide ----------
+  function cutToFit(node, full) {
+    let lo = 0, hi = full.length;
+    while (lo < hi) {
+      const mid = Math.ceil((lo + hi) / 2);
+      node.textContent = full.slice(0, mid).trimEnd() + '\u2026';
+      if (node.scrollHeight <= node.clientHeight + 1) lo = mid; else hi = mid - 1;
+    }
+    node.textContent = full.slice(0, lo).trimEnd() + '\u2026';
+  }
+  function fitGroup(nodes, max, min, trimmed) {
+    const fits = n => n.scrollHeight <= n.clientHeight + 1;
+    const fulls = nodes.map(n => n.textContent);
+    let size = max;
+    const apply = () => nodes.forEach(n => { n.style.fontSize = size + 'px'; });
+    apply();
+    while (size > min && !nodes.every(fits)) { size -= 0.5; apply(); }
+    // Still too long at the smallest size: cut the text and mark it with an ellipsis.
+    nodes.forEach((n, i) => { if (!fits(n)) { cutToFit(n, fulls[i]); trimmed.add(n.dataset.name); } });
+  }
+  function fitTitle(node) {
+    const full = node.textContent;
+    let size = 28;
+    node.style.fontSize = size + 'px';
+    while (node.scrollWidth > node.clientWidth + 1 && size > 19) {
+      size -= 1;
+      node.style.fontSize = size + 'px';
+    }
+    if (node.scrollWidth <= node.clientWidth + 1) return;
+    let lo = 0, hi = full.length;
+    while (lo < hi) {
+      const mid = Math.ceil((lo + hi) / 2);
+      node.textContent = full.slice(0, mid).trimEnd() + '\u2026';
+      if (node.scrollWidth <= node.clientWidth + 1) lo = mid; else hi = mid - 1;
+    }
+    node.textContent = full.slice(0, lo).trimEnd() + '\u2026';
+  }
+  function fitSlide(root) {
+    const trimmed = new Set();
+    const groups = {};
+    root.querySelectorAll('.s-fit').forEach(n => { (groups[n.dataset.group] = groups[n.dataset.group] || []).push(n); });
+    Object.keys(groups).forEach(g => {
+      const sz = GROUP_SIZES[g] || [14, 11];
+      fitGroup(groups[g], sz[0], sz[1], trimmed);
+    });
+    const t = root.querySelector('.s-title');
+    if (t) fitTitle(t);
+    return Array.from(trimmed);
+  }
+  function fontsReady() {
+    if (!document.fonts || !document.fonts.load) return Promise.resolve();
+    const loads = [
+      '500 30px Lora', '600 14px Lora', 'italic 400 12px Lora',
+      '400 14px Inter', '500 12px Inter', '600 12px Inter'
+    ].map(f => document.fonts.load(f, 'AaBb').catch(() => {}));
+    const timeout = new Promise(r => setTimeout(r, 2500));
+    return Promise.race([Promise.all(loads).then(() => document.fonts.ready), timeout]);
+  }
+
+  // ---------- Slide view ----------
+  const overlay = document.getElementById('slide-overlay');
+  const scaler  = document.getElementById('slide-scaler');
+  const frame   = document.getElementById('slide-frame');
+  const stage   = document.getElementById('slide-stage');
+  const noteEl  = document.getElementById('slide-note');
+  let lastFocus = null;
+
+  function scaleSlide() {
+    const s = Math.max(0.25, Math.min((stage.clientWidth - 48) / SLIDE_W, (stage.clientHeight - 28) / SLIDE_H, 1.6));
+    frame.style.width = (SLIDE_W * s) + 'px';
+    frame.style.height = (SLIDE_H * s) + 'px';
+    scaler.style.transform = 'scale(' + s + ')';
+  }
+  function trimNote(trimmed) {
+    return trimmed.length
+      ? 'Shortened to fit the slide: ' + trimmed.join('; ') + '. Shorten these answers on the worksheet to keep your full wording.'
+      : '';
+  }
+  async function openSlide() {
+    lastFocus = document.activeElement;
+    scaler.replaceChildren(buildSlide());
+    noteEl.textContent = '';
+    overlay.hidden = false;
+    document.body.style.overflow = 'hidden';
+    scaleSlide();
+    document.getElementById('slide-back').focus();
+    await fontsReady();
+    noteEl.textContent = trimNote(fitSlide(scaler));
+  }
+  function closeSlide() {
+    overlay.hidden = true;
+    scaler.replaceChildren();
+    document.body.style.overflow = '';
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  window.addEventListener('resize', () => { if (!overlay.hidden) scaleSlide(); });
+  document.addEventListener('keydown', e => {
+    if (overlay.hidden) return;
+    if (e.key === 'Escape') { closeSlide(); return; }
+    if (e.key === 'Tab') {
+      const items = [document.getElementById('slide-back'), document.getElementById('slide-pdf')].filter(b => !b.disabled);
+      if (!items.length) return;
+      const i = items.indexOf(document.activeElement);
+      e.preventDefault();
+      items[(i + (e.shiftKey ? items.length - 1 : 1)) % items.length].focus();
+    }
+  });
+
+  // ---------- PDF ----------
+  let libsPromise = null;
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = () => reject(new Error('Could not load ' + src));
+      document.head.appendChild(s);
+    });
+  }
+  function ensureLibs() {
+    if (!libsPromise) {
+      libsPromise = (async () => {
+        if (!window.html2canvas) await loadScript(LIB_URLS.html2canvas);
+        if (!(window.jspdf && window.jspdf.jsPDF)) await loadScript(LIB_URLS.jspdf);
+      })().catch(err => { libsPromise = null; throw err; });
+    }
+    return libsPromise;
+  }
+  function fileBase() {
+    const u = state.universal;
+    const g = clean(u['group-name']), a = clean(u['application-name']);
+    const name = [g, a].filter(Boolean).join(' - ') || 'GenAI breakout slide';
+    // ASCII only: characters such as the em dash make browsers drop the file name and its .pdf extension
+    return name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9 _-]/g, '')
+      .trim().replace(/\s+/g, '_').slice(0, 80) || 'GenAI_breakout_slide';
+  }
+  function toast(text, ms) {
+    const ind = document.getElementById('saved');
+    ind.textContent = text;
+    ind.classList.add('visible');
+    clearTimeout(savedIndicatorTimer);
+    savedIndicatorTimer = setTimeout(() => { ind.classList.remove('visible'); ind.textContent = 'Saved'; }, ms || 2400);
+  }
+  function setPdfBusy(busy) {
+    ['btn-pdf', 'slide-pdf'].forEach(id => {
+      const b = document.getElementById(id);
+      b.disabled = busy;
+      b.textContent = busy ? 'Preparing PDF\u2026' : 'Save / download as PDF';
+    });
+  }
+
+  async function downloadPdf() {
+    setPdfBusy(true);
+    let host = null;
+    try {
+      await ensureLibs();
+      await fontsReady();
+      host = document.createElement('div');
+      host.className = 'slide-offscreen';
+      host.appendChild(buildSlide());
+      document.body.appendChild(host);
+      const slide = host.firstElementChild;
+      const trimmed = fitSlide(host);
+      const canvas = await window.html2canvas(slide, {
+        scale: 2,
+        backgroundColor: '#FFFFFF',
+        useCORS: true,
+        logging: false,
+        width: SLIDE_W,
+        height: SLIDE_H,
+        windowWidth: SLIDE_W,
+        windowHeight: SLIDE_H,
+        onclone: (doc) => {
+          const h = doc.querySelector('.slide-offscreen');
+          if (h) { h.style.left = '0px'; h.style.top = '0px'; }
+        }
+      });
+      const pdf = new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'in', format: [13.333, 7.5], compress: true });
+      pdf.setProperties({ title: clean(state.universal['application-name']) || 'Generative AI in your organisation' });
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.96), 'JPEG', 0, 0, 13.333, 7.5);
+      pdf.save(fileBase() + '.pdf');
+      toast(trimmed.length ? 'PDF saved. Some answers were shortened to fit.' : 'PDF saved');
+      if (!overlay.hidden && trimmed.length) noteEl.textContent = trimNote(trimmed);
+    } catch (err) {
+      console.error(err);
+      toast('Could not create the PDF directly. In the print window, choose Save as PDF.', 4200);
+      await printSlideFallback();
+    } finally {
+      if (host) host.remove();
+      setPdfBusy(false);
+    }
+  }
+
+  // Fallback if the PDF libraries cannot be loaded (for example on a restricted network):
+  // print only the slide, so the browser's own Save as PDF produces the same one-page slide.
+  async function printSlideFallback() {
+    const root = document.getElementById('print-slide-root');
+    root.replaceChildren(buildSlide());
+    await fontsReady();
+    fitSlide(root);
+    const style = document.createElement('style');
+    style.id = 'print-slide-style';
+    style.textContent =
+      '@page { size: 1280px 720px; margin: 0; }' +
+      '@media print {' +
+      ' html, body { width: 1280px; height: 720px; overflow: hidden; padding: 0 !important; background: #fff !important; }' +
+      ' body.print-slide > *:not(#print-slide-root) { display: none !important; }' +
+      ' body.print-slide #print-slide-root { display: block !important; position: static !important; }' +
+      ' body.print-slide .slide { -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
+      '}';
+    document.head.appendChild(style);
+    document.body.classList.add('print-slide');
+    const done = () => {
+      document.body.classList.remove('print-slide');
+      style.remove();
+      root.replaceChildren();
+      window.removeEventListener('afterprint', done);
+    };
+    window.addEventListener('afterprint', done);
+    window.print();
+  }
+
+  // =================================================================
   //  Init
   // =================================================================
   restore();
   applyAllToDOM();
 
   // =================================================================
-  //  Print
+  //  Buttons
   // =================================================================
-  document.getElementById('btn-print').addEventListener('click', () => window.print());
+  document.getElementById('btn-slide').addEventListener('click', openSlide);
+  document.getElementById('btn-pdf').addEventListener('click', downloadPdf);
+  document.getElementById('slide-pdf').addEventListener('click', downloadPdf);
+  document.getElementById('slide-back').addEventListener('click', closeSlide);
 
-  // Reset — clear all answers (useful on shared laptops / between groups)
+  // Reset: clear all answers (useful on shared laptops and between groups)
   document.getElementById('btn-reset').addEventListener('click', () => {
     const ok = window.confirm('Clear all answers on this worksheet? This cannot be undone.');
     if (!ok) return;
@@ -1577,115 +2365,12 @@
     ARCHITECTURES.forEach(a => {
       BRANCH_FIELD_KEYS.forEach(k => { state.branching[a][k] = ''; });
     });
-    // Clear any text inputs the render pass won't blank on its own
     UNIVERSAL_FIELDS.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
+      const node = document.getElementById(id);
+      if (node) node.value = '';
     });
     applyAllToDOM();
     showSaved();
-  });
-
-  // =================================================================
-  //  Download — reflects the chosen architecture and its answers.
-  // =================================================================
-  document.getElementById('btn-download').addEventListener('click', () => {
-    const u = state.universal;
-    const arch = state.architecture;
-    const archLabel = arch ? arch.charAt(0).toUpperCase() + arch.slice(1) : '\u2014';
-    const branch = arch ? state.branching[arch] : { q4:'', q5:'', q6:'', q7:'', q8:'' };
-    const c = arch ? BRANCH_CONTENT[arch] : null;
-    const archDescriptions = {
-      horizontal: 'General-purpose tools help people do existing work faster \u2014 AI added to the worker.',
-      vertical:   'Domain-specific AI helps experts do specialist work better \u2014 AI wrapped around expert work.',
-      agentic:    'AI systems execute parts of a workflow, not just advise \u2014 AI embedded in the workflow.'
-    };
-
-    const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : '\u2014';
-    const profileLine =
-      'Volume/speed ' + cap(u['profile-volume']) +
-      '  \u00b7  Risk/reversibility ' + cap(u['profile-risk']) +
-      '  \u00b7  Structure/codifiability ' + cap(u['profile-structure']);
-
-    const qBlock = (n, k) => [
-      n + '. ' + c[k].title.toUpperCase() + (c[k].lead ? ' \u2014 ' + c[k].lead : ''),
-      '   ' + c[k].helper,
-      '   ' + ((branch[k] || '').trim() || '\u2014'),
-      ''
-    ];
-
-    const lines = [
-      'GENERATIVE AI IN YOUR ORGANISATION',
-      'London Business School \u2014 breakout exercise',
-      '',
-      'Group:     ' + ((u['group-name'] || '').trim() || '\u2014'),
-      'Use case:  ' + ((u['application-name'] || '').trim() || '\u2014'),
-      'AI mode:   ' + archLabel,
-      '',
-      '\u2500'.repeat(64),
-      '',
-      '1. THE SETTING',
-      '   ' + ((u['f1'] || '').trim() || '\u2014'),
-      '',
-      '2. THE DRIVER',
-      '   ' + ((u['f2'] || '').trim() || '\u2014'),
-      '',
-      '3. THE WORK PROFILE',
-      '   ' + profileLine,
-      ''
-    ];
-
-    if (arch && c) {
-      lines.push(
-        '4. THE AI MODE',
-        '   ' + archLabel + ' \u2014 ' + archDescriptions[arch],
-        ''
-      );
-      lines.push.apply(lines, qBlock(5, 'q4'));
-      lines.push(
-        '\u2500'.repeat(64),
-        'THE LEADERSHIP QUESTIONS',
-        '\u2500'.repeat(64),
-        ''
-      );
-      lines.push.apply(lines, qBlock(6, 'q5'));
-      lines.push.apply(lines, qBlock(7, 'q6'));
-      lines.push.apply(lines, qBlock(8, 'q7'));
-      lines.push.apply(lines, qBlock(9, 'q8'));
-    } else {
-      lines.push('4. THE AI MODE', '   \u2014', '');
-      lines.push('(mode not chosen \u2014 questions 5 to 9 not answered)', '');
-    }
-
-    lines.push(
-      '\u2500'.repeat(64),
-      '',
-      '10. THE FIRST EXPERIMENT',
-      '   What would you test in 30\u201390 days, with which users, on which',
-      '   workflow, and what is the success metric?',
-      '   ' + ((u['fexp'] || '').trim() || '\u2014'),
-      '',
-      '\u2500'.repeat(64),
-      '',
-      '11. SIX MONTHS OUT',
-      '   If the first experiment worked and you scaled it, what would the',
-      '   team or delivery model look like in six months?',
-      '   ' + ((u['fstretch'] || '').trim() || '\u2014'),
-      ''
-    );
-
-    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const groupName = (u['group-name'] || 'Group').trim() || 'Group';
-    const application = (u['application-name'] || 'Application').trim() || 'Application';
-    const safeName = (groupName + ' \u2014 ' + application).replace(/[^\w\s\u2014-]/g, '').replace(/\s+/g, '_').slice(0, 80);
-    a.href = url;
-    a.download = (safeName || 'breakout-answers') + '.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
   });
 </script>
 
